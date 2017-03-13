@@ -1473,13 +1473,21 @@ BrickTagBigCorpus<-function(class.model,
                    add.metrics=T,
                    output.stats=T,
                    smooth.plot=T){
+
+  # output - POS-tagged texts into outdir.text, PDF plots in Plots, segment score CSV in Plots.
+
+  # MPI input sources.
   all.file.list<-list.files(indir, pattern='.txt')
+
   #print(all.file.list)
-  
+
   #sorts files into dates assuming date is the last four characters
   #all.file.list<-sortFiles(file.list)
-  
+
   all.file.list.dir<-paste(indir, all.file.list, sep='/')
+
+  # MPI scatter
+
   all.stats<-NULL
   for(i in 1:length(all.file.list.dir)){
     file.list<-all.file.list.dir[i]
