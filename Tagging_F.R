@@ -1,9 +1,3 @@
-library(openNLP)
-library(gridExtra)
-library(neuralnet)
-library(tm)
-library(ggplot2)
-
 #global Dirs
 #dropbox.path<-"D:/Dropbox"
 #dropbox.path<-"C:/users/malgeehe/dropbox/Transfer/Suspense/POS Field Tags/NeuralNet/New Revised Model/Brick"
