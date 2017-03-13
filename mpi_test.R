@@ -1,11 +1,10 @@
 
 
-if (!is.loaded("mpi_initialize")) {
-    library("Rmpi")
-}
+library(Rmpi)
 
-mpi.spawn.Rslaves(nslaves=mpi.universe.size()-1)
+print(mpi.comm.size())
 
-mpi.remote.exec(paste(mpi.comm.size(), mpi.comm.rank()))
+#mpi.remote.exec(paste(mpi.comm.size(), mpi.comm.rank()))
 
 mpi.close.Rslaves()
+mpi.exit()
