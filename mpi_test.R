@@ -2,14 +2,15 @@
 library(Rmpi)
 library(parallel)
 
-hello.works <- function(i) {
-  print(i, mpi.comm.rank())
+hello.world <- function(i) {
+  Sys.sleep(1)
+  return(i+1)
 }
 
 cluster <- makeCluster(mpi.universe.size(), type='MPI')
 
-output.lines <- clusterApply(cl=cl, x=(1:10), fun=hello.world)
-cat(unlist(output.lines), sep='\n')
+res <- clusterApply(cl=cl, x=(1:4), fun=hello.world)
+print(res)
 
 stopCluster(cl)
 mpi.exit()
