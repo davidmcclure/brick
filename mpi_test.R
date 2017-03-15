@@ -4,19 +4,16 @@ library(parallel)
 
 work <- function(i) {
   Sys.sleep(1)
-  return(i+1)
+  return(c(i, T))
 }
 
-if (mpi.comm.rank() == 0) {
+np <- mpi.universe.size() - 1
+cl <- makeCluster(np, type='MPI')
 
-  cl <- makeCluster(mpi.universe.size(), type='MPI')
+system.time({
+  res <- clusterApply(cl=cl, x=(1:np), fun=work)
+  print(res)
+})
 
-  system.time({
-    res <- clusterApply(cl=cl, x=(1:4), fun=work)
-    print(res)
-  })
-
-  stopCluster(cl)
-  mpi.exit()
-
-}
+stopCluster(cl)
+mpi.exit()
