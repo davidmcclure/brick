@@ -10,10 +10,8 @@ work <- function(i) {
 np <- mpi.universe.size() - 1
 cl <- makeCluster(np, type='MPI')
 
-system.time({
-  res <- clusterApply(cl=cl, x=(1:np), fun=work)
-  print(res)
-})
+res <- clusterApply(cl=cl, x=(1:np), fun=work)
+print(res)
 
 stopCluster(cl)
 mpi.exit()
