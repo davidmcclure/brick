@@ -1,7 +1,6 @@
 
-library(foreach)
-library(snow)
-library(doSNOW)
+library(Rmpi)
+library(parallel)
 
 work <- function(i) {
   Sys.sleep(1)
@@ -9,12 +8,8 @@ work <- function(i) {
 }
 
 cl <- makeCluster(mpi.universe.size(), type='MPI')
-registerDoSNOW(cl)
 
-res <- foreach(i = (1:4) %dopar% {
-  work(i)
-})
-
+res <- clusterApply(cl=cl, x=(1:4), fun=work)
 print(res)
 
 stopCluster(cl)
