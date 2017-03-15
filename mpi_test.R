@@ -1,15 +1,20 @@
 
-library(Rmpi)
-library(parallel)
+library(foreach)
+library(snow)
+library(doSNOW)
 
-hello.world <- function(i) {
+work <- function(i) {
   Sys.sleep(1)
   return(i+1)
 }
 
-cluster <- makeCluster(mpi.universe.size(), type='MPI')
+cl <- makeCluster(mpi.universe.size(), type='MPI')
+registerDoSNOW(cl)
 
-res <- clusterApply(cl=cl, x=(1:4), fun=hello.world)
+res <- foreach(i = (1:4) %dopar% {
+  work(i)
+})
+
 print(res)
 
 stopCluster(cl)
