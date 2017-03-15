@@ -1550,3 +1550,93 @@ BrickTagBigCorpus<-function(class.model,
   }
 }
 
+
+BrickTagBigCorpusParallel<-function(class.model, 
+                   class.fields,
+                   plot.type="line",
+                   indir="OriginalTexts", 
+                   outdir.plot="Plots", 
+                   outdir.text="TaggedTexts", 
+                   div.size=2, 
+                   div.advance=1, 
+                   div.type='percentage', 
+                   aoa=F, 
+                   pos=F, 
+                   add.metrics=T,
+                   output.stats=T,
+                   smooth.plot=T){
+
+  # output - POS-tagged texts into outdir.text, PDF plots in Plots, segment score CSV in Plots.
+
+  # MPI input sources.
+  all.file.list<-list.files(indir, pattern='.txt')
+  print(all.file.list)
+
+  #sorts files into dates assuming date is the last four characters
+  #all.file.list<-sortFiles(file.list)
+
+  all.file.list.dir<-paste(indir, all.file.list, sep='/')
+
+  # MPI scatter
+
+  all.stats<-NULL
+  for(i in 1:length(all.file.list.dir)){
+    file.list<-all.file.list.dir[i]
+    filename<-all.file.list[i]
+    print(file.list)
+    text.list<-lapply(file.list, function(x) scan(x, what='character', sep='\n', encoding='UTF-8'))
+    if (pos){
+      text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
+      text.list<-lapply(text.list, function(x) unlist(strsplit(x, ' ')))
+      text.list<-lapply(text.list, function(x) hardPOSClean(x))
+    } else {
+      text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
+    }
+    print("Calculating POS values")
+    source(paste(dropbox.path, "POS.R", sep='/'))
+    pos.text.list<-lapply(text.list, function(x) pos_tag_file(x))
+    pos.text.list<-lapply(pos.text.list, function(x) unlist(strsplit(x, ' ')))
+    remove(text.list)
+    tagged.texts<-lapply(pos.text.list, function(x) autoTag(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, aoa=aoa, pos=pos, plot.type=plot.type, add.metrics=add.metrics, smooth.plot=smooth.plot))
+    file.list<-as.list(file.list)
+    raw.text.names<-lapply(file.list, function(x) unlist(strsplit(x, '.txt')))
+    raw.text.names<-lapply(raw.text.names, function(x) unlist(strsplit(x, '/')))
+    #print(raw.text.names)
+    #print(length(raw.text.names))
+    raw.text.names<-lapply(raw.text.names, function(x) x[length(raw.text.names[[1]])])
+    text.names<-paste(raw.text.names, '_autotagged.txt', sep='')
+    plot.names<-paste(raw.text.names, '_autotagged_plots.pdf', sep='')
+    text.names<-paste(outdir.text, text.names, sep='/')
+    plot.names<-paste(outdir.plot, plot.names, sep='/')
+    tagged.text.words<-lapply(tagged.texts, function(x) x[[2]])
+    tagged.text.plots<-lapply(tagged.texts, function(x) x[[1]])
+    if(output.stats){
+      if(plot.type=="line"){
+        suspense.tags<-lapply(tagged.texts, function(x) x[[4]][,1])
+        suspense.tags<-as.numeric(unlist(suspense.tags))
+        if(length(suspense.tags)<105){
+          to.fill<-105-length(suspense.tags)
+          suspense.tags<-c(suspense.tags, rep(NA,to.fill))
+        }
+        all.stats<-rbind(all.stats, c(filename, suspense.tags))
+      } else {
+        #print("Stats Unavailable in Bar Graphs")
+      }
+    }
+    if(plot.type=="line"){
+      #total.suspense<-lapply(tagged.texts, function(x) x[[3]])
+      #total.suspense<-unlist(total.suspense)
+      #all.dates<-lapply(file.list, function(x) extractDate(x))
+      #all.dates<-unlist(all.dates)
+      #total.suspense.table<-data.frame(unlist(raw.text.names), all.dates, total.suspense, stringsAsFactors=F)
+      #write.csv(total.suspense.table, file=paste(outdir.plot, "totalsuspense_Unsuspensecorpus.csv", sep="/"))
+    }
+    mapply(function(x,y) write(x,file=y), tagged.text.words, text.names)
+    #print each plot to its own file
+    mapply(function(x,y) plotPDF(x,y), plot.names, tagged.text.plots)
+    names(tagged.texts)<-text.names
+    #return(tagged.texts)
+    detach(package:ggplot2, unload=T)
+    write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
+  }
+}
