@@ -34,4 +34,4 @@ module load jre/1.8.0_91
 module load openmpi/1.10.2/gcc
 module load R/3.3.3.gcc
 
-mpirun Rscript ./mpi_test.R
+mpirun R CMD BATCH ./mpi_test.R
