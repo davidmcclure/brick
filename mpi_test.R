@@ -1,13 +1,15 @@
 
-
 library(Rmpi)
+library(parallel)
 
-mpi.spawn.Rslaves(nslaves=4)
+hello.works <- function(i) {
+  print(i, mpi.comm.rank())
+}
 
-print(mpi.universe.size())
-print(mpi.comm.size())
+cluster <- makeCluster(mpi.universe.size(), type='MPI')
 
-mpi.remote.exec(paste(mpi.comm.size(), mpi.comm.rank()))
+output.lines <- clusterApply(cl=cl, x=(1:10), fun=hello.world)
+cat(unlist(output.lines), sep='\n')
 
-mpi.close.Rslaves()
+stopCluster(cl)
 mpi.exit()
