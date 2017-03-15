@@ -7,12 +7,16 @@ work <- function(i) {
   return(i+1)
 }
 
-cl <- makeCluster(mpi.universe.size(), type='MPI')
+if (mpi.comm.rank() == 0) {
 
-system.time({
-  res <- clusterApply(cl=cl, x=(1:4), fun=work)
-  print(res)
-})
+  cl <- makeCluster(mpi.universe.size(), type='MPI')
 
-stopCluster(cl)
-mpi.exit()
+  system.time({
+    res <- clusterApply(cl=cl, x=(1:4), fun=work)
+    print(res)
+  })
+
+  stopCluster(cl)
+  mpi.exit()
+
+}
