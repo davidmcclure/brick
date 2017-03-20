@@ -1576,7 +1576,6 @@ BrickTagBigCorpusParallel<-function(class.model,
 
     # File basename.
     filename<-basename(path)
-    print(c(path, filename))
 
     # Read the text file as a list of lines.
     text.list<-scan(path, what='character', sep='\n', encoding='UTF-8')
@@ -1609,10 +1608,6 @@ BrickTagBigCorpusParallel<-function(class.model,
     ))
 
     # Build a slug from the file name.
-    file.list<-as.list(file.list)
-    #raw.text.names<-lapply(file.list, function(x) unlist(strsplit(x, '.txt')))
-    #raw.text.names<-lapply(raw.text.names, function(x) unlist(strsplit(x, '/')))
-    #raw.text.names<-lapply(raw.text.names, function(x) x[length(raw.text.names[[1]])])
     raw.text.names<-unlist(strsplit(filename, '.txt'))
 
     # Build paths for tagged text and plots.
@@ -1654,6 +1649,8 @@ BrickTagBigCorpusParallel<-function(class.model,
     # Dump stats to CSV.
     # TODO: Do once, outside the map function.
     write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
+
+    print(filename)
 
   }
 
