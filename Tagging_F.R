@@ -1570,7 +1570,6 @@ BrickTagBigCorpusParallel<-function(class.model,
 
   # MPI input sources.
   all.file.list<-list.files(indir, pattern='.txt')
-  print(all.file.list)
 
   #sorts files into dates assuming date is the last four characters
   #all.file.list<-sortFiles(file.list)
@@ -1581,21 +1580,36 @@ BrickTagBigCorpusParallel<-function(class.model,
 
   all.stats<-NULL
   for(i in 1:length(all.file.list.dir)){
+
+    # Relative file path.
     file.list<-all.file.list.dir[i]
+
+    # File basename.
     filename<-all.file.list[i]
-    print(file.list)
+    print(filename)
+
+    # Read the text file as a list of lines.
     text.list<-lapply(file.list, function(x) scan(x, what='character', sep='\n', encoding='UTF-8'))
-    if (pos){
-      text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
-      text.list<-lapply(text.list, function(x) unlist(strsplit(x, ' ')))
-      text.list<-lapply(text.list, function(x) hardPOSClean(x))
-    } else {
-      text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
-    }
-    print("Calculating POS values")
+
+    # POS-tag, if specified, otherwise merge into single string.
+    #if (pos){
+      #text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
+      #text.list<-lapply(text.list, function(x) unlist(strsplit(x, ' ')))
+      #text.list<-lapply(text.list, function(x) hardPOSClean(x))
+    #} else {
+      #text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
+    #}
+
+    # Merge lines into a single string.
+    text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
+
+    # POS-tag.
     source(paste(dropbox.path, "POS.R", sep='/'))
     pos.text.list<-lapply(text.list, function(x) pos_tag_file(x))
     pos.text.list<-lapply(pos.text.list, function(x) unlist(strsplit(x, ' ')))
+
+    print(pos.text.list)
+
     remove(text.list)
     tagged.texts<-lapply(pos.text.list, function(x) autoTag(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, aoa=aoa, pos=pos, plot.type=plot.type, add.metrics=add.metrics, smooth.plot=smooth.plot))
     file.list<-as.list(file.list)
@@ -1639,4 +1653,5 @@ BrickTagBigCorpusParallel<-function(class.model,
     detach(package:ggplot2, unload=T)
     write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
   }
+
 }
