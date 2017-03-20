@@ -1612,14 +1612,14 @@ BrickTagBigCorpusParallel<-function(class.model,
 
     # Apply classifier.
     tagged.texts<-lapply(pos.text.list, function(x) autoTag(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, aoa=aoa, pos=pos, plot.type=plot.type, add.metrics=add.metrics, smooth.plot=smooth.plot))
-    print(tagged.texts)
 
     file.list<-as.list(file.list)
     raw.text.names<-lapply(file.list, function(x) unlist(strsplit(x, '.txt')))
     raw.text.names<-lapply(raw.text.names, function(x) unlist(strsplit(x, '/')))
-    #print(raw.text.names)
-    #print(length(raw.text.names))
     raw.text.names<-lapply(raw.text.names, function(x) x[length(raw.text.names[[1]])])
+
+    print(raw.text.names)
+
     text.names<-paste(raw.text.names, '_autotagged.txt', sep='')
     plot.names<-paste(raw.text.names, '_autotagged_plots.pdf', sep='')
     text.names<-paste(outdir.text, text.names, sep='/')
