@@ -1609,8 +1609,8 @@ BrickTagBigCorpusParallel<-function(
     remove(text.list)
 
     # Apply classifier.
-    tagged.texts<-lapply(pos.text.list, function(x) autoTag(
-      x,
+    tagged.text<-autoTag(
+      pos.text.list,
       div.size=div.size,
       div.advance=div.advance,
       div.type=div.type,
@@ -1620,54 +1620,56 @@ BrickTagBigCorpusParallel<-function(
       pos=pos,
       plot.type=plot.type,
       add.metrics=add.metrics
-    ))
+    )
 
-    # Build a slug from the file name.
-    raw.text.names<-unlist(strsplit(filename, '.txt'))
+    return(tagged.text)
 
-    # Build paths for tagged text and plots.
-    text.names<-paste(raw.text.names, '_autotagged.txt', sep='')
-    plot.names<-paste(raw.text.names, '_autotagged_plots.pdf', sep='')
-    text.names<-paste(outdir.text, text.names, sep='/')
-    plot.names<-paste(outdir.plot, plot.names, sep='/')
+    ## Build a slug from the file name.
+    #slug<-unlist(strsplit(filename, '.txt'))
 
-    # Destructure the classifier results.
-    tagged.text.words<-lapply(tagged.texts, function(x) x[[2]])
-    tagged.text.plots<-lapply(tagged.texts, function(x) x[[1]])
+    ## Build paths for tagged text and plots.
+    #text.names<-paste(slug, '_autotagged.txt', sep='')
+    #plot.names<-paste(slug, '_autotagged_plots.pdf', sep='')
+    #text.names<-paste(outdir.text, text.names, sep='/')
+    #plot.names<-paste(outdir.plot, plot.names, sep='/')
 
-    if (output.stats & plot.type == 'line') {
+    ## Destructure the classifier results.
+    #tagged.text.words<-lapply(tagged.texts, function(x) x[[2]])
+    #tagged.text.plots<-lapply(tagged.texts, function(x) x[[1]])
 
-      # Pull out the tags.
-      suspense.tags<-lapply(tagged.texts, function(x) x[[4]][,1])
-      suspense.tags<-as.numeric(unlist(suspense.tags))
+    #if (output.stats & plot.type == 'line') {
 
-      # Correct bin offset error.
-      if (length(suspense.tags) < 105) {
-        to.fill<-105-length(suspense.tags)
-        suspense.tags<-c(suspense.tags, rep(NA,to.fill))
-      }
+      ## Pull out the tags.
+      #suspense.tags<-lapply(tagged.texts, function(x) x[[4]][,1])
+      #suspense.tags<-as.numeric(unlist(suspense.tags))
 
-      # TODO: Return from map.
-      all.stats<-rbind(all.stats, c(filename, suspense.tags))
+      ## Correct bin offset error.
+      #if (length(suspense.tags) < 105) {
+        #to.fill<-105-length(suspense.tags)
+        #suspense.tags<-c(suspense.tags, rep(NA,to.fill))
+      #}
 
-    }
+      ## TODO: Return from map.
+      #all.stats<-rbind(all.stats, c(filename, suspense.tags))
 
-    # Dump tagged words to disk.
-    mapply(function(x,y) write(x,file=y), tagged.text.words, text.names)
+    #}
 
-    # Dump plots to separate files.
-    mapply(function(x,y) plotPDF(x,y), plot.names, tagged.text.plots)
-    names(tagged.texts)<-text.names
+    ## Dump tagged words to disk.
+    #mapply(function(x,y) write(x,file=y), tagged.text.words, text.names)
 
-    detach(package:ggplot2, unload=T)
+    ## Dump plots to separate files.
+    #mapply(function(x,y) plotPDF(x,y), plot.names, tagged.text.plots)
+    #names(tagged.texts)<-text.names
 
-    # Dump stats to CSV.
-    # TODO: Do once, outside the map function.
-    #write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
+    #detach(package:ggplot2, unload=T)
 
-    print(filename)
+    ## Dump stats to CSV.
+    ## TODO: Do once, outside the map function.
+    ##write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
 
-    return(c(filename, suspense.tags))
+    #print(filename)
+
+    #return(c(filename, suspense.tags))
 
   })
 
