@@ -849,7 +849,7 @@ sliceCal<-function(split.text, fields, slice.probs){
 #function takes a split text and instructions on creating overlapping windows, it also takes
 #a classification model, a set of fields and a boolean indicating if aoa scores are also to
 #be calculated as part of the model. The function returns a tagged text
-autoTag<-function(source.text, div.size, div.advance, div.type='percentage', class.model, class.fields, aoa=F, pos=F, plot.type='bar', add.metrics=T, smooth.plot=F){
+autoTag<-function(source.text, div.size, div.advance, div.type='percentage', class.model, class.fields, aoa=F, pos=F, plot.type='bar', add.metrics=T){
   #print("Calculating POS values")
   #source(paste(dropbox.path, "POS.R", sep='/'))
   #source.text<-pos_tag_file(text)
@@ -1568,6 +1568,7 @@ BrickTagBigCorpusParallel<-function(class.model,
 
   library(Rmpi)
   library(parallel)
+  load('Brick.RData')
 
   # List input paths.
   paths<-list.files(indir, pattern='.txt', full.names=T)
@@ -1582,7 +1583,10 @@ BrickTagBigCorpusParallel<-function(class.model,
     'hardPOSClean',
     'extractPOSTags',
     'attachPOSPunct',
-    'createWindows'
+    'createWindows',
+    'dropbox.path',
+    'sliceCal',
+    'suspense.fields'
   ))
 
   res <- clusterApply(cl=cluster, x=paths, fun=function(path) {
@@ -1616,8 +1620,7 @@ BrickTagBigCorpusParallel<-function(class.model,
       aoa=aoa,
       pos=pos,
       plot.type=plot.type,
-      add.metrics=add.metrics,
-      smooth.plot=smooth.plot
+      add.metrics=add.metrics
     ))
 
     # Build a slug from the file name.
