@@ -1603,15 +1603,17 @@ BrickTagBigCorpusParallel<-function(class.model,
     # Merge lines into a single string.
     text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
 
-    # POS-tag.
+    # Get list of POS-tagged tokens.
     source(paste(dropbox.path, "POS.R", sep='/'))
     pos.text.list<-lapply(text.list, function(x) pos_tag_file(x))
     pos.text.list<-lapply(pos.text.list, function(x) unlist(strsplit(x, ' ')))
 
-    print(pos.text.list)
-
     remove(text.list)
+
+    # Apply classifier.
     tagged.texts<-lapply(pos.text.list, function(x) autoTag(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, aoa=aoa, pos=pos, plot.type=plot.type, add.metrics=add.metrics, smooth.plot=smooth.plot))
+    print(tagged.texts)
+
     file.list<-as.list(file.list)
     raw.text.names<-lapply(file.list, function(x) unlist(strsplit(x, '.txt')))
     raw.text.names<-lapply(raw.text.names, function(x) unlist(strsplit(x, '/')))
@@ -1624,6 +1626,7 @@ BrickTagBigCorpusParallel<-function(class.model,
     plot.names<-paste(outdir.plot, plot.names, sep='/')
     tagged.text.words<-lapply(tagged.texts, function(x) x[[2]])
     tagged.text.plots<-lapply(tagged.texts, function(x) x[[1]])
+
     if(output.stats){
       if(plot.type=="line"){
         suspense.tags<-lapply(tagged.texts, function(x) x[[4]][,1])
@@ -1637,6 +1640,7 @@ BrickTagBigCorpusParallel<-function(class.model,
         #print("Stats Unavailable in Bar Graphs")
       }
     }
+
     if(plot.type=="line"){
       #total.suspense<-lapply(tagged.texts, function(x) x[[3]])
       #total.suspense<-unlist(total.suspense)
@@ -1645,6 +1649,7 @@ BrickTagBigCorpusParallel<-function(class.model,
       #total.suspense.table<-data.frame(unlist(raw.text.names), all.dates, total.suspense, stringsAsFactors=F)
       #write.csv(total.suspense.table, file=paste(outdir.plot, "totalsuspense_Unsuspensecorpus.csv", sep="/"))
     }
+
     mapply(function(x,y) write(x,file=y), tagged.text.words, text.names)
     #print each plot to its own file
     mapply(function(x,y) plotPDF(x,y), plot.names, tagged.text.plots)
@@ -1652,6 +1657,7 @@ BrickTagBigCorpusParallel<-function(class.model,
     #return(tagged.texts)
     detach(package:ggplot2, unload=T)
     write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
+
   }
 
 }
