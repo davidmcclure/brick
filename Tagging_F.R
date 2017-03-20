@@ -1551,6 +1551,91 @@ BrickTagBigCorpus<-function(class.model,
 }
 
 
+worker <- function(path) {
+
+  # File basename.
+  filename<-basename(path)
+
+  # Read the text file as a list of lines.
+  text.list<-scan(path, what='character', sep='\n', encoding='UTF-8')
+  #text.list<-lapply(file.list, function(x) scan(x, what='character', sep='\n', encoding='UTF-8'))
+
+  # Merge lines into a single string.
+  text.list<-paste(text.list, collapse=' ')
+  #text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
+
+  # Get list of POS-tagged tokens.
+  source('POS.R')
+  pos.text.list<-lapply(text.list, function(x) pos_tag_file(x))
+  pos.text.list<-lapply(pos.text.list, function(x) unlist(strsplit(x, ' ')))
+
+  remove(text.list)
+
+  # Apply classifier.
+  tagged.texts<-lapply(pos.text.list, function(x) autoTag(
+    x,
+    div.size=div.size,
+    div.advance=div.advance,
+    div.type=div.type,
+    class.model=class.model,
+    class.fields=class.fields,
+    aoa=aoa,
+    pos=pos,
+    plot.type=plot.type,
+    add.metrics=add.metrics,
+    smooth.plot=smooth.plot
+  ))
+
+  # Build a slug from the file name.
+  raw.text.names<-unlist(strsplit(filename, '.txt'))
+
+  # Build paths for tagged text and plots.
+  text.names<-paste(raw.text.names, '_autotagged.txt', sep='')
+  plot.names<-paste(raw.text.names, '_autotagged_plots.pdf', sep='')
+  text.names<-paste(outdir.text, text.names, sep='/')
+  plot.names<-paste(outdir.plot, plot.names, sep='/')
+
+  # Destructure the classifier results.
+  tagged.text.words<-lapply(tagged.texts, function(x) x[[2]])
+  tagged.text.plots<-lapply(tagged.texts, function(x) x[[1]])
+
+  if (output.stats & plot.type == 'line') {
+
+    # Pull out the tags.
+    suspense.tags<-lapply(tagged.texts, function(x) x[[4]][,1])
+    suspense.tags<-as.numeric(unlist(suspense.tags))
+
+    # Correct bin offset error.
+    if (length(suspense.tags) < 105) {
+      to.fill<-105-length(suspense.tags)
+      suspense.tags<-c(suspense.tags, rep(NA,to.fill))
+    }
+
+    # TODO: Return from map.
+    all.stats<-rbind(all.stats, c(filename, suspense.tags))
+
+  }
+
+  # Dump tagged words to disk.
+  mapply(function(x,y) write(x,file=y), tagged.text.words, text.names)
+
+  # Dump plots to separate files.
+  mapply(function(x,y) plotPDF(x,y), plot.names, tagged.text.plots)
+  names(tagged.texts)<-text.names
+
+  detach(package:ggplot2, unload=T)
+
+  # Dump stats to CSV.
+  # TODO: Do once, outside the map function.
+  #write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
+
+  print(filename)
+
+  return(c(filename, suspense.tags))
+
+}
+
+
 BrickTagBigCorpusParallel<-function(class.model, 
                    class.fields,
                    plot.type="line",
@@ -1576,90 +1661,93 @@ BrickTagBigCorpusParallel<-function(class.model,
   np <- mpi.universe.size() - 1
   cluster <- makeCluster(np, type='MPI')
 
-  res <- clusterApply(cl=cl, x=paths, fun=function(path) {
+  res <- clusterApply(cl=cluster, x=paths, fun=worker)
 
-    # File basename.
-    filename<-basename(path)
+  #res <- clusterApply(cl=cluster, x=paths, fun=function(path) {
 
-    # Read the text file as a list of lines.
-    text.list<-scan(path, what='character', sep='\n', encoding='UTF-8')
-    #text.list<-lapply(file.list, function(x) scan(x, what='character', sep='\n', encoding='UTF-8'))
+    ## File basename.
+    #filename<-basename(path)
 
-    # Merge lines into a single string.
-    text.list<-paste(text.list, collapse=' ')
-    #text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
+    ## Read the text file as a list of lines.
+    #text.list<-scan(path, what='character', sep='\n', encoding='UTF-8')
+    ##text.list<-lapply(file.list, function(x) scan(x, what='character', sep='\n', encoding='UTF-8'))
 
-    # Get list of POS-tagged tokens.
-    source(paste(dropbox.path, "POS.R", sep='/'))
-    pos.text.list<-lapply(text.list, function(x) pos_tag_file(x))
-    pos.text.list<-lapply(pos.text.list, function(x) unlist(strsplit(x, ' ')))
+    ## Merge lines into a single string.
+    #text.list<-paste(text.list, collapse=' ')
+    ##text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
 
-    remove(text.list)
+    ## Get list of POS-tagged tokens.
+    #source('POS.R')
+    #pos.text.list<-lapply(text.list, function(x) pos_tag_file(x))
+    #pos.text.list<-lapply(pos.text.list, function(x) unlist(strsplit(x, ' ')))
 
-    # Apply classifier.
-    tagged.texts<-lapply(pos.text.list, function(x) autoTag(
-      x,
-      div.size=div.size,
-      div.advance=div.advance,
-      div.type=div.type,
-      class.model=class.model,
-      class.fields=class.fields,
-      aoa=aoa,
-      pos=pos,
-      plot.type=plot.type,
-      add.metrics=add.metrics,
-      smooth.plot=smooth.plot
-    ))
+    #remove(text.list)
 
-    # Build a slug from the file name.
-    raw.text.names<-unlist(strsplit(filename, '.txt'))
+    ## Apply classifier.
+    #tagged.texts<-lapply(pos.text.list, function(x) autoTag(
+      #x,
+      #div.size=div.size,
+      #div.advance=div.advance,
+      #div.type=div.type,
+      #class.model=class.model,
+      #class.fields=class.fields,
+      #aoa=aoa,
+      #pos=pos,
+      #plot.type=plot.type,
+      #add.metrics=add.metrics,
+      #smooth.plot=smooth.plot
+    #))
 
-    # Build paths for tagged text and plots.
-    text.names<-paste(raw.text.names, '_autotagged.txt', sep='')
-    plot.names<-paste(raw.text.names, '_autotagged_plots.pdf', sep='')
-    text.names<-paste(outdir.text, text.names, sep='/')
-    plot.names<-paste(outdir.plot, plot.names, sep='/')
+    ## Build a slug from the file name.
+    #raw.text.names<-unlist(strsplit(filename, '.txt'))
 
-    # Destructure the classifier results.
-    tagged.text.words<-lapply(tagged.texts, function(x) x[[2]])
-    tagged.text.plots<-lapply(tagged.texts, function(x) x[[1]])
+    ## Build paths for tagged text and plots.
+    #text.names<-paste(raw.text.names, '_autotagged.txt', sep='')
+    #plot.names<-paste(raw.text.names, '_autotagged_plots.pdf', sep='')
+    #text.names<-paste(outdir.text, text.names, sep='/')
+    #plot.names<-paste(outdir.plot, plot.names, sep='/')
 
-    if (output.stats & plot.type == 'line') {
+    ## Destructure the classifier results.
+    #tagged.text.words<-lapply(tagged.texts, function(x) x[[2]])
+    #tagged.text.plots<-lapply(tagged.texts, function(x) x[[1]])
 
-      # Pull out the tags.
-      suspense.tags<-lapply(tagged.texts, function(x) x[[4]][,1])
-      suspense.tags<-as.numeric(unlist(suspense.tags))
+    #if (output.stats & plot.type == 'line') {
 
-      # Correct bin offset error.
-      if (length(suspense.tags) < 105) {
-        to.fill<-105-length(suspense.tags)
-        suspense.tags<-c(suspense.tags, rep(NA,to.fill))
-      }
+      ## Pull out the tags.
+      #suspense.tags<-lapply(tagged.texts, function(x) x[[4]][,1])
+      #suspense.tags<-as.numeric(unlist(suspense.tags))
 
-      # TODO: Return from map.
-      all.stats<-rbind(all.stats, c(filename, suspense.tags))
+      ## Correct bin offset error.
+      #if (length(suspense.tags) < 105) {
+        #to.fill<-105-length(suspense.tags)
+        #suspense.tags<-c(suspense.tags, rep(NA,to.fill))
+      #}
 
-    }
+      ## TODO: Return from map.
+      #all.stats<-rbind(all.stats, c(filename, suspense.tags))
 
-    # Dump tagged words to disk.
-    mapply(function(x,y) write(x,file=y), tagged.text.words, text.names)
+    #}
 
-    # Dump plots to separate files.
-    mapply(function(x,y) plotPDF(x,y), plot.names, tagged.text.plots)
-    names(tagged.texts)<-text.names
+    ## Dump tagged words to disk.
+    #mapply(function(x,y) write(x,file=y), tagged.text.words, text.names)
 
-    detach(package:ggplot2, unload=T)
+    ## Dump plots to separate files.
+    #mapply(function(x,y) plotPDF(x,y), plot.names, tagged.text.plots)
+    #names(tagged.texts)<-text.names
 
-    # Dump stats to CSV.
-    # TODO: Do once, outside the map function.
-    #write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
+    #detach(package:ggplot2, unload=T)
 
-    print(filename)
+    ## Dump stats to CSV.
+    ## TODO: Do once, outside the map function.
+    ##write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
 
-    return(c(filename, suspense.tags))
+    #print(filename)
 
-  }
+    #return(c(filename, suspense.tags))
 
+  #})
+
+  # TODO: Write CSV.
   print(res)
 
 }
