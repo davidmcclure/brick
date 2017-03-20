@@ -1579,10 +1579,12 @@ BrickTagBigCorpusParallel<-function(class.model,
     print(c(path, filename))
 
     # Read the text file as a list of lines.
-    text.list<-lapply(file.list, function(x) scan(x, what='character', sep='\n', encoding='UTF-8'))
+    text.list<-scan(path, what='character', sep='\n', encoding='UTF-8')
+    #text.list<-lapply(file.list, function(x) scan(x, what='character', sep='\n', encoding='UTF-8'))
 
     # Merge lines into a single string.
-    text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
+    text.list<-paste(text.list, collapse=' ')
+    #text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
 
     # Get list of POS-tagged tokens.
     source(paste(dropbox.path, "POS.R", sep='/'))
@@ -1608,9 +1610,10 @@ BrickTagBigCorpusParallel<-function(class.model,
 
     # Build a slug from the file name.
     file.list<-as.list(file.list)
-    raw.text.names<-lapply(file.list, function(x) unlist(strsplit(x, '.txt')))
-    raw.text.names<-lapply(raw.text.names, function(x) unlist(strsplit(x, '/')))
-    raw.text.names<-lapply(raw.text.names, function(x) x[length(raw.text.names[[1]])])
+    #raw.text.names<-lapply(file.list, function(x) unlist(strsplit(x, '.txt')))
+    #raw.text.names<-lapply(raw.text.names, function(x) unlist(strsplit(x, '/')))
+    #raw.text.names<-lapply(raw.text.names, function(x) x[length(raw.text.names[[1]])])
+    raw.text.names<-unlist(strsplit(filename, '.txt'))
 
     # Build paths for tagged text and plots.
     text.names<-paste(raw.text.names, '_autotagged.txt', sep='')
