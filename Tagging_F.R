@@ -1566,13 +1566,17 @@ BrickTagBigCorpusParallel<-function(class.model,
                    output.stats=T,
                    smooth.plot=T){
 
+  library(Rmpi)
+  library(parallel)
+
   # List input paths.
   paths<-list.files(indir, pattern='.txt', full.names=T)
 
-  # MPI scatter
+  # Create MPI cluster.
+  np <- mpi.universe.size() - 1
+  cluster <- makeCluster(np, type='MPI')
 
-  all.stats<-NULL
-  for (path in paths) {
+  res <- clusterApply(cl=cl, x=paths, fun=function(path) {
 
     # File basename.
     filename<-basename(path)
@@ -1648,10 +1652,14 @@ BrickTagBigCorpusParallel<-function(class.model,
 
     # Dump stats to CSV.
     # TODO: Do once, outside the map function.
-    write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
+    #write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
 
     print(filename)
 
+    return(c(filename, suspense.tags))
+
   }
+
+  print(res)
 
 }
