@@ -1579,6 +1579,10 @@ BrickTagBigCorpusParallel<-function(class.model,
   clusterExport(cluster, c(
     'autoTag',
     'stripPOSPunct',
+    'hardPOSClean',
+    'extractPOSTags',
+    'attachPOSPunct',
+    'createWindows'
   ))
 
   res <- clusterApply(cl=cluster, x=paths, fun=function(path) {
