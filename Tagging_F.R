@@ -1597,11 +1597,9 @@ BrickTagBigCorpusParallel<-function(
 
     # Read the text file as a list of lines.
     text.list<-scan(path, what='character', sep='\n', encoding='UTF-8')
-    #text.list<-lapply(file.list, function(x) scan(x, what='character', sep='\n', encoding='UTF-8'))
 
     # Merge lines into a single string.
     text.list<-paste(text.list, collapse=' ')
-    #text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
 
     # Get list of POS-tagged tokens.
     source('POS.R')
