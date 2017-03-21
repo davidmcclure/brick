@@ -1566,13 +1566,33 @@ BrickTagBigCorpusParallel<-function(class.model,
                    output.stats=T,
                    smooth.plot=T){
 
+  library(Rmpi)
+  library(parallel)
+  load('Brick.RData')
+
   # List input paths.
   paths<-list.files(indir, pattern='.txt', full.names=T)
 
+  # Create MPI cluster.
+  np <- mpi.universe.size()
+  cluster <- makeCluster(np, type='MPI')
+
+  # Ship locals to slaves.
+  clusterExport(cluster, c(
+    'autoTag',
+    'stripPOSPunct',
+    'hardPOSClean',
+    'extractPOSTags',
+    'attachPOSPunct',
+    'createWindows',
+    'dropbox.path',
+    'sliceCal',
+    'suspense.fields'
+  ))
+
   # MPI scatter
 
-  all.stats<-NULL
-  for (path in paths) {
+  res <- clusterApply(cl=cluster, x=paths, fun=function(path) {
 
     # File basename.
     filename<-basename(path)
@@ -1631,7 +1651,7 @@ BrickTagBigCorpusParallel<-function(class.model,
       }
 
       # TODO: Return from map.
-      all.stats<-rbind(all.stats, c(filename, suspense.tags))
+      #all.stats<-rbind(all.stats, c(filename, suspense.tags))
 
     }
 
@@ -1650,6 +1670,11 @@ BrickTagBigCorpusParallel<-function(class.model,
 
     print(filename)
 
-  }
+    return(c(filename, suspense.tags))
+
+  })
+
+  # TODO: Write CSV.
+  print(res)
 
 }
