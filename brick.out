@@ -1,0 +1,28 @@
+starting MPI worker
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Type: EXEC 
+Read 89 items
+[1] 13073
+[1] 208
+[1] "Calculating Metrics"
+[1] "Vector too small"
+Type: EXEC 
+Read 237 items
+[1] 15847
+[1] 78
+[1] "Calculating Metrics"
+[1] "Vector too small"
+Type: EXEC 
+Read 390 items
+[1] 26196
+[1] 266
+[1] "Calculating Metrics"
+[1] "Vector too small"
