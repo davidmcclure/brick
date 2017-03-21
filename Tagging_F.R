@@ -1621,8 +1621,7 @@ BrickTagBigCorpusParallel<-function(class.model,
       aoa=aoa,
       pos=pos,
       plot.type=plot.type,
-      add.metrics=add.metrics,
-      smooth.plot=smooth.plot
+      add.metrics=add.metrics
     ))
 
     # Build a slug from the file name.
@@ -1676,5 +1675,8 @@ BrickTagBigCorpusParallel<-function(class.model,
 
   # TODO: Write CSV.
   print(res)
+
+  stopCluster(cluster)
+  mpi.exit()
 
 }
