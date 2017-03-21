@@ -1568,6 +1568,8 @@ BrickTagBigCorpusParallel<-function(class.model,
 
   library(Rmpi)
   library(parallel)
+  library(plyr)
+
   load('Brick.RData')
 
   # List input paths.
@@ -1690,9 +1692,8 @@ BrickTagBigCorpusParallel<-function(class.model,
 
   })
 
-  # TODO: Write CSV.
-  write.csv(res, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
-  print(res)
+  # Write CSV.
+  write.csv(ldply(res), file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
 
   stopCluster(cluster)
   mpi.exit()

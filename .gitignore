@@ -3,5 +3,5 @@
 .RData
 
 Plots/*.pdf
+Plots/*.csv
 TaggedTexts/*.txt
-TaggedTexts/*.csv
