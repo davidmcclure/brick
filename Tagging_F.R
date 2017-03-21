@@ -1576,7 +1576,8 @@ BrickTagBigCorpusParallel<-function(class.model,
   paths<-list.files(indir, pattern='.txt', full.names=T)
 
   # Create MPI cluster.
-  np <- mpi.universe.size()
+  size <- mpi.universe.size()
+  np <- if (size > 1) size - 1 else 1
   cluster <- makeCluster(np, type='MPI', outfile='')
 
   # Ship locals to slaves.
