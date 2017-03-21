@@ -849,7 +849,7 @@ sliceCal<-function(split.text, fields, slice.probs){
 #function takes a split text and instructions on creating overlapping windows, it also takes
 #a classification model, a set of fields and a boolean indicating if aoa scores are also to
 #be calculated as part of the model. The function returns a tagged text
-autoTag<-function(source.text, div.size, div.advance, div.type='percentage', class.model, class.fields, aoa=F, pos=F, plot.type='bar', add.metrics=T, smooth.plot=F){
+autoTagMPI<-function(source.text, div.size, div.advance, div.type='percentage', class.model, class.fields, aoa=F, pos=F, plot.type='bar', add.metrics=T, smooth.plot=F){
   #print("Calculating POS values")
   #source(paste(dropbox.path, "POS.R", sep='/'))
   #source.text<-pos_tag_file(text)
@@ -1044,7 +1044,7 @@ multiAutotag<-function(indir,
   } else {
     text.list<-lapply(text.list, function(x) paste(x, collapse=' '))
   }
-  tagged.texts<-lapply(text.list, function(x) autoTag(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, tags=tags, aoa=aoa, pos=pos, plot.type=plot.type))
+  tagged.texts<-lapply(text.list, function(x) autoTagMPI(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, tags=tags, aoa=aoa, pos=pos, plot.type=plot.type))
   file.list<-as.list(file.list)
   raw.text.names<-lapply(file.list, function(x) unlist(strsplit(x, '.txt')))
   raw.text.names<-lapply(raw.text.names, function(x) unlist(strsplit(x, '/')))
@@ -1400,7 +1400,7 @@ BrickTag<-function(class.model,
   pos.text.list<-lapply(text.list, function(x) pos_tag_file(x))
   pos.text.list<-lapply(pos.text.list, function(x) unlist(strsplit(x, ' ')))
   remove(text.list)
-  tagged.texts<-lapply(pos.text.list, function(x) autoTag(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, aoa=aoa, pos=pos, plot.type=plot.type, add.metrics=add.metrics, smooth.plot=smooth.plot))
+  tagged.texts<-lapply(pos.text.list, function(x) autoTagMPI(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, aoa=aoa, pos=pos, plot.type=plot.type, add.metrics=add.metrics, smooth.plot=smooth.plot))
   file.list<-as.list(file.list)
   raw.text.names<-lapply(file.list, function(x) unlist(strsplit(x, '.txt')))
   raw.text.names<-lapply(raw.text.names, function(x) unlist(strsplit(x, '/')))
@@ -1506,7 +1506,7 @@ BrickTagBigCorpus<-function(class.model,
     pos.text.list<-lapply(text.list, function(x) pos_tag_file(x))
     pos.text.list<-lapply(pos.text.list, function(x) unlist(strsplit(x, ' ')))
     remove(text.list)
-    tagged.texts<-lapply(pos.text.list, function(x) autoTag(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, aoa=aoa, pos=pos, plot.type=plot.type, add.metrics=add.metrics, smooth.plot=smooth.plot))
+    tagged.texts<-lapply(pos.text.list, function(x) autoTagMPI(x, div.size=div.size, div.advance=div.advance, div.type=div.type, class.model=class.model, class.fields=class.fields, aoa=aoa, pos=pos, plot.type=plot.type, add.metrics=add.metrics, smooth.plot=smooth.plot))
     file.list<-as.list(file.list)
     raw.text.names<-lapply(file.list, function(x) unlist(strsplit(x, '.txt')))
     raw.text.names<-lapply(raw.text.names, function(x) unlist(strsplit(x, '/')))
@@ -1578,8 +1578,9 @@ BrickTagBigCorpusParallel<-function(class.model,
   cluster <- makeCluster(np, type='MPI', outfile='')
 
   # Ship locals to slaves.
+  # TODO: Do this automatically?
   clusterExport(cluster, c(
-    'autoTag',
+    'autoTagMPI',
     'stripPOSPunct',
     'hardPOSClean',
     'extractPOSTags',
@@ -1587,6 +1588,14 @@ BrickTagBigCorpusParallel<-function(class.model,
     'createWindows',
     'dropbox.path',
     'sliceCal',
+    'fieldCal',
+    'posCal',
+    'calNarrativePerc',
+    'netClassDiff',
+    'Brick',
+    'binQuantile',
+    'plotTags',
+    'getTags',
     'suspense.fields'
   ))
 
@@ -1615,10 +1624,8 @@ BrickTagBigCorpusParallel<-function(class.model,
       # Apply classifier.
       tagged.texts<-lapply(pos.text.list, function(x) {
 
-        print(x)
-
-        autoTag(
-          x,
+        autoTagMPI(
+          source.text=x,
           div.size=div.size,
           div.advance=div.advance,
           div.type=div.type,
@@ -1627,7 +1634,8 @@ BrickTagBigCorpusParallel<-function(class.model,
           aoa=aoa,
           pos=pos,
           plot.type=plot.type,
-          add.metrics=add.metrics
+          add.metrics=add.metrics,
+          smooth.plot=smooth.plot
         )
 
       })
@@ -1671,10 +1679,6 @@ BrickTagBigCorpusParallel<-function(class.model,
 
       detach(package:ggplot2, unload=T)
 
-      # Dump stats to CSV.
-      # TODO: Do once, outside the map function.
-      write.csv(all.stats, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
-
       print(filename)
 
       return(c(filename, suspense.tags))
@@ -1687,6 +1691,7 @@ BrickTagBigCorpusParallel<-function(class.model,
   })
 
   # TODO: Write CSV.
+  write.csv(res, file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
   print(res)
 
   stopCluster(cluster)
