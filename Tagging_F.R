@@ -1602,8 +1602,7 @@ BrickTagBigCorpusParallel<-function(class.model,
     'suspense.fields'
   ))
 
-  # MPI scatter
-
+  # Spread paths across MPI ranks.
   res <- clusterApply(cl=cluster, x=paths, fun=function(path) {
 
     tryCatch({
@@ -1667,9 +1666,6 @@ BrickTagBigCorpusParallel<-function(class.model,
           to.fill<-105-length(suspense.tags)
           suspense.tags<-c(suspense.tags, rep(NA,to.fill))
         }
-
-        # TODO: Return from map.
-        #all.stats<-rbind(all.stats, c(filename, suspense.tags))
 
       }
 
