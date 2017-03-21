@@ -3,13 +3,13 @@
 #all commands that start with SBATCH contain commands that are just used by SLURM for scheduling
 #################
 #set a job name
-#SBATCH --job-name=mpi-test
+#SBATCH --job-name=tag-gale
 #################
 #a file for job output, you can check job progress
-#SBATCH --output=mpi-test.out
+#SBATCH --output=tag-gale.out
 #################
 # a file for errors from the job
-#SBATCH --error=mpi-test.err
+#SBATCH --error=tag-gale.err
 #################
 #time you think you need; default is one hour
 #in minutes in this case, hh:mm:ss
