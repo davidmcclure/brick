@@ -1,18 +1,13 @@
 
 
-load('Brick.RData')
-
-source('Tagging_F.R')
-
 library(Rmpi)
 library(parallel)
-library(plyr)
 
 
 BrickTagGale<-function(class.model,
                    class.fields,
                    plot.type="line",
-                   indir="OriginalTexts",
+                   indir="gale",
                    outdir.plot="Plots",
                    outdir.text="TaggedTexts",
                    div.size=2,
@@ -25,7 +20,7 @@ BrickTagGale<-function(class.model,
                    smooth.plot=T){
 
   # List input paths.
-  paths<-list.files(indir, pattern='.txt', full.names=T)
+  paths<-list.files(indir, pattern='.bz2', full.names=T)
 
   # Create MPI cluster.
   size <- mpi.universe.size()
@@ -52,22 +47,26 @@ BrickTagGale<-function(class.model,
     'plotTags',
     'getTags',
     'plotPDF',
+    'fromJSON',
     'suspense.fields'
   ))
 
   # Spread paths across MPI ranks.
   res <- clusterApply(cl=cluster, x=paths, fun=function(path) {
 
+    load('Brick.RData')
+    source('Tagging_F.R')
+
+    library(plyr)
+    library(rjson)
+
     tryCatch({
 
-      # File basename.
-      filename<-basename(path)
+      # Read JSON.
+      json = fromJSON(file=path)
 
-      # Read the text file as a list of lines.
-      text.list<-scan(path, what='character', sep='\n', encoding='UTF-8')
-
-      # Merge lines into a single string.
-      text.list<-paste(text.list, collapse=' ')
+      # Get plain text.
+      text.list<-json$plain_text
 
       # Get list of POS-tagged tokens.
       source(paste(dropbox.path, "POS.R", sep='/'))
@@ -95,12 +94,9 @@ BrickTagGale<-function(class.model,
 
       })
 
-      # Build a slug from the file name.
-      raw.text.names<-unlist(strsplit(filename, '.txt'))
-
       # Build paths for tagged text and plots.
-      text.names<-paste(raw.text.names, '_autotagged.txt', sep='')
-      plot.names<-paste(raw.text.names, '_autotagged_plots.pdf', sep='')
+      text.names<-paste(json$identifier, '_autotagged.txt', sep='')
+      plot.names<-paste(json$identifier, '_autotagged_plots.pdf', sep='')
       text.names<-paste(outdir.text, text.names, sep='/')
       plot.names<-paste(outdir.plot, plot.names, sep='/')
 
@@ -131,9 +127,9 @@ BrickTagGale<-function(class.model,
 
       detach(package:ggplot2, unload=T)
 
-      print(filename)
+      print(json$identifier)
 
-      return(c(filename, suspense.tags))
+      return(c(json$identifier, suspense.tags))
 
     }, error=function(e) {
       print(e)
