@@ -131,5 +131,5 @@ BrickTagGale<-function(class.model,
 BrickTagGale(
   Brick$net.model,
   suspense.fields,
-  indir='/scratch/PI/malgeehe/data/stacks/ext/gail-amfic/000'
+  indir='/scratch/PI/malgeehe/data/stacks/ext/gail-amfic'
 )
