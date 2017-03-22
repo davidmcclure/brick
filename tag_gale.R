@@ -23,12 +23,12 @@ BrickTagGale<-function(class.model,
                    smooth.plot=T){
 
   # List input paths.
-  paths<-list.files(indir, pattern='.bz2', full.names=T, recursive=T)
+  paths<-list.files(indir, pattern='00*', full.names=T, recursive=T)
 
   # Create MPI cluster.
   size <- mpi.universe.size()
   np <- if (size > 1) size - 1 else 1
-  cluster <- makeCluster(np, type='MPI', outfile='gale.R.out')
+  cluster <- makeClusterLB(np, type='MPI', outfile='')
 
   clusterExport(cluster, c('Brick', 'suspense.fields'))
 
