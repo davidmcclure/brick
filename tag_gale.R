@@ -28,12 +28,12 @@ BrickTagGale<-function(class.model,
   # Create MPI cluster.
   size <- mpi.universe.size()
   np <- if (size > 1) size - 1 else 1
-  cluster <- makeClusterLB(np, type='MPI', outfile='')
+  cluster <- makeCluster(np, type='MPI', outfile='')
 
   clusterExport(cluster, c('Brick', 'suspense.fields'))
 
   # Spread paths across MPI ranks.
-  res <- clusterApply(cl=cluster, x=paths, fun=function(path) {
+  res <- clusterApplyLB(cl=cluster, x=paths, fun=function(path) {
 
     load('Brick.RData')
 
