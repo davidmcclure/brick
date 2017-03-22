@@ -1,7 +1,10 @@
 
 
+load('Brick.RData')
+
 library(Rmpi)
 library(parallel)
+library(plyr)
 
 
 BrickTagGale<-function(class.model,
@@ -20,44 +23,21 @@ BrickTagGale<-function(class.model,
                    smooth.plot=T){
 
   # List input paths.
-  paths<-list.files(indir, pattern='.bz2', full.names=T)
+  paths<-list.files(indir, pattern='.bz2', full.names=T, recursive=T)
 
   # Create MPI cluster.
   size <- mpi.universe.size()
   np <- if (size > 1) size - 1 else 1
   cluster <- makeCluster(np, type='MPI', outfile='')
 
-  # Ship locals to slaves.
-  # TODO: Do this automatically?
-  clusterExport(cluster, c(
-    'autoTagMPI',
-    'stripPOSPunct',
-    'hardPOSClean',
-    'extractPOSTags',
-    'attachPOSPunct',
-    'createWindows',
-    'dropbox.path',
-    'sliceCal',
-    'fieldCal',
-    'posCal',
-    'calNarrativePerc',
-    'netClassDiff',
-    'Brick',
-    'binQuantile',
-    'plotTags',
-    'getTags',
-    'plotPDF',
-    'fromJSON',
-    'suspense.fields'
-  ))
+  clusterExport(cluster, c('Brick', 'suspense.fields'))
 
   # Spread paths across MPI ranks.
   res <- clusterApply(cl=cluster, x=paths, fun=function(path) {
 
     load('Brick.RData')
-    source('Tagging_F.R')
 
-    library(plyr)
+    source('Tagging_F.R')
     library(rjson)
 
     tryCatch({
