@@ -28,7 +28,7 @@ BrickTagGale<-function(class.model,
   # Create MPI cluster.
   size <- mpi.universe.size()
   np <- if (size > 1) size - 1 else 1
-  cluster <- makeCluster(np, type='MPI', outfile='')
+  cluster <- makeCluster(np, type='MPI', outfile='gale.R.out')
 
   clusterExport(cluster, c('Brick', 'suspense.fields'))
 
