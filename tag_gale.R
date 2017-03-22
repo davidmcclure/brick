@@ -128,4 +128,8 @@ BrickTagGale<-function(class.model,
 
 
 # Run job.
-BrickTagGale(Brick$net.model, suspense.fields)
+BrickTagGale(
+  Brick$net.model,
+  suspense.fields,
+  indir='/scratch/PI/malgeehe/data/stacks/ext/gail-amfic'
+)
