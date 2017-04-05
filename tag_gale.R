@@ -113,6 +113,7 @@ BrickTagGale<-function(class.model,
 
     }, error=function(e) {
       print(e)
+      return(NULL)
     })
 
   })
