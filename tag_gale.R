@@ -118,6 +118,10 @@ BrickTagGale<-function(class.model,
 
   })
 
+  # Filter short / long rows.
+  # TODO: Why is this necessary?
+  res = res[lapply(res, length) == 106]
+
   # Write CSV.
   write.csv(ldply(res), file=paste(outdir.plot, "AllStats.csv", sep="/"), row.names=F)
 
@@ -132,4 +136,5 @@ BrickTagGale(
   Brick$net.model,
   suspense.fields,
   indir='/scratch/PI/malgeehe/data/stacks/ext/gail-amfic'
+  #indir='./gale'
 )
